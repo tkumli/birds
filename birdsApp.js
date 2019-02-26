@@ -11,6 +11,7 @@ Birds.App = function() {
             }
         })
     }
+    
 
     function load_shaders(config) {
         var names = config.names;
