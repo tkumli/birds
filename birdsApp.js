@@ -138,8 +138,8 @@ Birds.App = function() {
 
         var dtPosition = gpuCompute.createTexture();
         var dtVelocity = gpuCompute.createTexture();
-        fillPositionTexture( dtPosition );
-        fillVelocityTexture( dtVelocity );
+        initPositionTexture( dtPosition );
+        initVelocityTexture( dtVelocity );
 
         velocityVariable = gpuCompute.addVariable( "textureVelocity", Birds.shaders.frshVelocity, dtVelocity );
         positionVariable = gpuCompute.addVariable( "texturePosition", Birds.shaders.frshPosition, dtPosition );
@@ -249,7 +249,7 @@ Birds.App = function() {
         var cnt = 0;
         function load(name) {
             $.ajax({
-                url : name + ".c",
+                url : "shaders/" + name + ".c",
                 success : data => {
                     shaders[name] = data;
                     if (++cnt == names.length) { onLoaded(shaders); }
