@@ -1,6 +1,7 @@
 // App
 Birds.App = function() {
 
+    // BOUNDS x BOUNDS x BOUNDS kockában lesznek szétdobva a madarak a világban.
     var BOUNDS = 800;
     var BOUNDS_HALF = BOUNDS / 2;
 
@@ -197,13 +198,12 @@ Birds.App = function() {
         };
 
         // ShaderMaterial
-        var material = new THREE.ShaderMaterial( {
+        var material = new THREE.ShaderMaterial({
             uniforms: birdUniforms,
             vertexShader: Birds.shaders.birdVS,
             fragmentShader: Birds.shaders.birdFS,
             side: THREE.DoubleSide
-
-        } );
+        });
 
         var birdMesh = new THREE.Mesh( geometry, material );
         birdMesh.rotation.y = Math.PI / 2;
