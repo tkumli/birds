@@ -1,20 +1,14 @@
 // App
 Birds.App = function() {
 
-    // APP GLOBALS
-    var WIDTH;
-    var BIRDS;
-    
-    var BOUNDS, BOUNDS_HALF;   // todo: ez mi is pontosan?
+    var BOUNDS = 800;
+    var BOUNDS_HALF = BOUNDS / 2;
 
     var container, stats;
     var camera, scene, renderer;
-    var windowHalfX, windowHalfY;
-    var mouseX = 0, mouseY = 0;
-
-    var last;
 
     var gpuCompute;
+    var last;
     var velocityVariable;
     var positionVariable;
     var positionUniforms;
@@ -22,56 +16,17 @@ Birds.App = function() {
     var birdUniforms;
 
     function init(cb) {
-        console.log("Init called");
         load_shaders({
             names: ["frshPosition", "frshVelocity", "birdFS", "birdVS"],
-            loaded: function(shaders) {
-                Birds.shaders = shaders;
-                pageInit();
+            loaded: function() {
+                Birds.Page.init();
                 renderInit();
-				animate();
+                last = performance.now();
+                animate();
             }
         })
     }
 
-    function pageInit() {
-
-        if ( WEBGL.isWebGLAvailable() === false ) {
-            document.body.appendChild( WEBGL.getWebGLErrorMessage() );
-        }
-
-        var hash = document.location.hash.substr( 1 );
-        if ( hash ) hash = parseInt( hash, 0 );
-
-        /* TEXTURE WIDTH FOR SIMULATION */
-        WIDTH = hash || 32;
-        BIRDS = WIDTH * WIDTH;
-        
-        windowHalfX = window.innerWidth / 2;
-        windowHalfY = window.innerHeight / 2;
-
-        BOUNDS = 800;
-        BOUNDS_HALF = BOUNDS / 2;
-
-        document.getElementById( 'birds' ).innerText = BIRDS;
-
-        function change( n ) {
-            location.hash = n;
-            location.reload();
-            return false;
-        }
-
-        var options = '';
-        for ( i = 1; i < 7; i ++ ) {
-            var j = Math.pow( 2, i );
-            options += '<a href="#" onclick="return change(' + j + ')">' + ( j * j ) + '</a> ';
-        }
-        document.getElementById( 'options' ).innerHTML = options;
-
-        last = performance.now();   // todo: move to renderInit
-    }
-
-    //////////////////////////////
     function renderInit() {
 
         container = document.createElement( 'div' );
@@ -91,17 +46,11 @@ Birds.App = function() {
 
         initComputeRenderer();
 
+        // add stats
         stats = new Stats();
         container.appendChild( stats.dom );
 
-        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-        document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-        document.addEventListener( 'touchmove', onDocumentTouchMove, false );
-
-        //
-
-        window.addEventListener( 'resize', onWindowResize, false );
-
+        // add controls
         var gui = new dat.GUI();
 
         var effectController = {
@@ -112,29 +61,35 @@ Birds.App = function() {
         };
 
         var valuesChanger = function () {
-
             velocityUniforms[ "seperationDistance" ].value = effectController.seperation;
             velocityUniforms[ "alignmentDistance" ].value = effectController.alignment;
             velocityUniforms[ "cohesionDistance" ].value = effectController.cohesion;
             velocityUniforms[ "freedomFactor" ].value = effectController.freedom;
-
         };
-
         valuesChanger();
 
         gui.add( effectController, "seperation", 0.0, 100.0, 1.0 ).onChange( valuesChanger );
         gui.add( effectController, "alignment", 0.0, 100, 0.001 ).onChange( valuesChanger );
         gui.add( effectController, "cohesion", 0.0, 100, 0.025 ).onChange( valuesChanger );
-        // todo: freedomfactor miert nem allithato?
+        gui.add( effectController, "freedom", 0.0, 1.0, 0.025 ).onChange( valuesChanger );
         gui.close();
 
         var birdMesh = initBirds();
         scene.add( birdMesh );
+
+        window.addEventListener( 'resize', onWindowResize, false );
     }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
 
     function initComputeRenderer() {
 
-        gpuCompute = new GPUComputationRenderer( WIDTH, WIDTH, renderer );
+        gpuCompute = new GPUComputationRenderer( Birds.texture_width, Birds.texture_width, renderer );
 
         var dtPosition = gpuCompute.createTexture();
         var dtVelocity = gpuCompute.createTexture();
@@ -174,40 +129,6 @@ Birds.App = function() {
 
     }
 
-    function onWindowResize() {
-        windowHalfX = window.innerWidth / 2;
-        windowHalfY = window.innerHeight / 2;
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
-    }
-
-    function onDocumentMouseMove( event ) {
-        mouseX = event.clientX - windowHalfX;
-        mouseY = event.clientY - windowHalfY;
-    }
-
-    function onDocumentTouchStart( event ) {
-        if ( event.touches.length === 1 ) {
-
-            event.preventDefault();
-
-            mouseX = event.touches[ 0 ].pageX - windowHalfX;
-            mouseY = event.touches[ 0 ].pageY - windowHalfY;
-        }
-    }
-
-    function onDocumentTouchMove( event ) {
-        if ( event.touches.length === 1 ) {
-            event.preventDefault();
-
-            mouseX = event.touches[ 0 ].pageX - windowHalfX;
-            mouseY = event.touches[ 0 ].pageY - windowHalfY;
-        }
-    }
-
-    //
-
     function animate() {
         requestAnimationFrame( animate );
         render();
@@ -228,10 +149,14 @@ Birds.App = function() {
         birdUniforms[ "time" ].value = now;
         birdUniforms[ "delta" ].value = delta;
 
-        velocityUniforms[ "predator" ].value.set( 0.5 * mouseX / windowHalfX, - 0.5 * mouseY / windowHalfY, 0 );
+        velocityUniforms[ "predator" ].value.set(
+            Birds.mouseX / window.innerWidth,
+            - Birds.mouseY / window.innerHeight,
+            0
+        );
 
-        mouseX = 10000;
-        mouseY = 10000;
+        Birds.mouseX = 10000;
+        Birds.mouseY = 10000;
 
         gpuCompute.compute();
 
@@ -240,19 +165,18 @@ Birds.App = function() {
 
         renderer.render( scene, camera );
     }
-    //////////////////////////////
 
     function load_shaders(config) {
         var names = config.names;
         var onLoaded = config.loaded; // callback
-        var shaders = {};
         var cnt = 0;
+        Birds.shaders = {};
         function load(name) {
             $.ajax({
                 url : "shaders/" + name + ".c",
                 success : data => {
-                    shaders[name] = data;
-                    if (++cnt == names.length) { onLoaded(shaders); }
+                    Birds.shaders[name] = data;
+                    if (++cnt == names.length) { onLoaded(); }
                 }
             })
         }
@@ -261,7 +185,7 @@ Birds.App = function() {
 
     function initBirds() {
 
-        var geometry = new Birds.BirdGeometry(WIDTH);
+        var geometry = new Birds.BirdGeometry(Birds.texture_width);
 
         // For Vertex and Fragment
         birdUniforms = {

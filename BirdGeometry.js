@@ -57,14 +57,22 @@ Birds.BirdGeometry = function (width) {
     for ( var v = 0; v < triangles * 3; v ++ ) {
 
         var i = ~ ~ ( v / 3 );
-        var x = ( i % width ) / width;
-        var y = ~ ~ ( i / width ) / width;
+        var b = ~ ~ ( i / 3 );
+        var x = ( b % width ) / width;
+        var y = ~ ~ ( b / width ) / width;
+        var c, cc;
+
+        if ( b % 3 == 0 ) c = new THREE.Color(0xAA2222);
+        if ( b % 3 == 1 ) c = new THREE.Color(0x22AA22);
+        if ( b % 3 == 2 ) c = new THREE.Color(0x2222AA);
+
+        //console.log("v: " + v + ", i: " + i + ", b: " + b + ", x: " + x + ", y: " + y);
 
         // var c = new THREE.Color(
         // 	0x444444 +
-        // 	~ ~ ( v / 9 ) / BIRDS * 0x666666
+        // 	(~ ~ ( v / 9 )) / num_of_birds * 0x666666
         // );
-        var c = new THREE.Color(0x880000);
+        //var c = new THREE.Color(0x22FF22);
 
         birdColors.array[ v * 3 + 0 ] = c.r;
         birdColors.array[ v * 3 + 1 ] = c.g;
