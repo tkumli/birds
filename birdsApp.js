@@ -108,6 +108,7 @@ Birds.App = function() {
 
         positionUniforms[ "time" ] = { value: 0.0 };
         positionUniforms[ "delta" ] = { value: 0.0 };
+
         velocityUniforms[ "time" ] = { value: 1.0 };
         velocityUniforms[ "delta" ] = { value: 0.0 };
         velocityUniforms[ "testing" ] = { value: 1.0 };
@@ -116,6 +117,7 @@ Birds.App = function() {
         velocityUniforms[ "cohesionDistance" ] = { value: 1.0 };
         velocityUniforms[ "freedomFactor" ] = { value: 1.0 };
         velocityUniforms[ "predator" ] = { value: new THREE.Vector3() };
+        
         velocityVariable.material.defines.BOUNDS = BOUNDS.toFixed( 2 );
 
         velocityVariable.wrapS = THREE.RepeatWrapping;
@@ -202,7 +204,8 @@ Birds.App = function() {
             uniforms: birdUniforms,
             vertexShader: Birds.shaders.birdVS,
             fragmentShader: Birds.shaders.birdFS,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            transparent: true
         });
 
         var birdMesh = new THREE.Mesh( geometry, material );
