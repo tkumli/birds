@@ -176,7 +176,7 @@ Birds.App = function() {
         Birds.shaders = {};
         function load(name) {
             $.ajax({
-                url : "shaders/" + name + ".c",
+                url : "shaders/" + name + ".glsl",
                 success : data => {
                     Birds.shaders[name] = data;
                     if (++cnt == names.length) { onLoaded(); }
