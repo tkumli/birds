@@ -16,4 +16,28 @@ void main()	{
 
     gl_FragColor = vec4( position + velocity * delta * 15. , phase );
 
+    // párat kispécizek
+    if ( gl_FragCoord.x == 0.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( vec3(-6., -3., 330.), phase);
+    }
+    if ( gl_FragCoord.x == 1.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( vec3(0., -3., 330.), phase/3.0);
+    }
+    if ( gl_FragCoord.x == 2.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( vec3(6., -3., 330.), 0.);
+    }
+
+    if ( gl_FragCoord.x == 3.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( vec3(-6., 3., 330.), phase);
+    }
+    if ( gl_FragCoord.x == 4.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( vec3(0., 3., 330.), phase/3.0);
+    }
+    if ( gl_FragCoord.x == 5.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( vec3(6., 3., 330.), 0.);
+    }
+
+
+
+
 }

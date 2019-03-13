@@ -150,4 +150,16 @@ void main() {
 
     gl_FragColor = vec4( velocity, 1.0 );
 
+    // párat kispécizek
+    if ( gl_FragCoord.x == 3.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( velocity, 1.0 );
+    }
+    //if ( gl_FragCoord.x == 4.5 && gl_FragCoord.y == 0.5 ) {
+    //    gl_FragColor = vec4( vec3(1., 1., 1.), 1.0);
+    //}
+    if ( gl_FragCoord.x == 5.5 && gl_FragCoord.y == 0.5 ) {
+        gl_FragColor = vec4( vec3(-1., 1., -1.), 1.0);
+    }
+
+
 }

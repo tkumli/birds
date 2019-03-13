@@ -13,9 +13,16 @@ uniform float time;
 
 void main() {
 
+    float ph = time / 2500.0;
+
     vec4 tmpPos = texture2D( texturePosition, reference );
     vec3 pos = tmpPos.xyz;
     vec3 velocity = normalize(texture2D( textureVelocity, reference ).xyz);
+
+    // kispécizek párat
+    if (reference.x * 32. <= 4.0 && reference.y == 0.0) {
+        velocity = normalize(vec3(sin(ph), cos(ph), 0.0));
+    }
 
     vec3 newPosition = position;
 
