@@ -11,7 +11,8 @@ Birds.Page = function() {
         if ( hash ) hash = parseInt( hash, 0 );
 
         /* TEXTURE WIDTH FOR SIMULATION */
-        Birds.texture_width = hash || 32;
+        Birds.texture_width = 2;
+        //Birds.texture_width = hash || 32;
         Birds.num_of_birds  = Birds.texture_width * Birds.texture_width;
         
         WINDOW_HALF_X = window.innerWidth / 2;

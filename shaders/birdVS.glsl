@@ -1,61 +1,41 @@
+// attributes
+attribute vec3 meshColor;
 attribute vec2 reference;
-attribute float birdVertex;
+attribute float vertIx;
 
-attribute vec3 birdColor;
-
+// texture uniforms - what we calculate GPU side
 uniform sampler2D texturePosition;
 uniform sampler2D textureVelocity;
 
+// varyings
 varying vec4 vColor;
 varying float z;
 
+// uniforms
 uniform float time;
 
 void main() {
 
-    vec4 tmpPos = texture2D( texturePosition, reference );
-    vec3 pos = tmpPos.xyz;
+    vec4 posTexel = texture2D( texturePosition, reference );
+    vec3 worldPosition = posTexel.xyz;
+    // posTexel.w may carry some additional info
     vec3 velocity = normalize(texture2D( textureVelocity, reference ).xyz);
 
+    // model
     vec3 newPosition = position;
+    newPosition = mat3( modelMatrix ) * position;
 
-    if ( birdVertex == 4.0 || birdVertex == 7.0 ) {
-        // flap wings
-        newPosition.y = sin( tmpPos.w ) * 5.;
-    }
+    newPosition += vec3(0., 10.*sin(time/200.), 0.); 
+    newPosition += worldPosition;
+    newPosition = (viewMatrix * vec4(newPosition, 1.)).xyz;
+    newPosition = (0.5 + 0.5 * sin(time/200.)) * newPosition;
+    // view, projection
+    //gl_Position = projectionMatrix * viewMatrix  * vec4( newPosition, 1.0 );
+    gl_Position = vec4(normalize(newPosition.xyz), 1.);
+    //gl_Position = vec4(newPosition.xyz, 1.);
 
-    newPosition = mat3( modelMatrix ) * newPosition;
-
-
-    velocity.z *= -1.;
-    float xz = length( velocity.xz );
-    float xyz = 1.;
-    float x = sqrt( 1. - velocity.y * velocity.y );
-
-    float cosry = velocity.x / xz;
-    float sinry = velocity.z / xz;
-
-    float cosrz = x / xyz;
-    float sinrz = velocity.y / xyz;
-
-    mat3 maty =  mat3(
-        cosry, 0, -sinry,
-        0    , 1, 0     ,
-        sinry, 0, cosry
-
-    );
-
-    mat3 matz =  mat3(
-        cosrz , sinrz, 0,
-        -sinrz, cosrz, 0,
-        0     , 0    , 1
-    );
-
-    newPosition =  maty * matz * newPosition;
-    newPosition += pos;
-
+    // also calculating varyings
     z = newPosition.z;
+    vColor = vec4( meshColor, 1.0 );
 
-    vColor = vec4( birdColor, 1.0 );
-    gl_Position = projectionMatrix *  viewMatrix  * vec4( newPosition, 1.0 );
 }

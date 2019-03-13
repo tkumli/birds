@@ -10,10 +10,13 @@ Birds.App = function() {
 
     var gpuCompute;
     var last;
+
     var velocityVariable;
     var positionVariable;
-    var positionUniforms;
+
     var velocityUniforms;
+    var positionUniforms;
+
     var birdUniforms;
 
     function init(cb) {
@@ -34,11 +37,11 @@ Birds.App = function() {
         document.body.appendChild( container );
 
         camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
-        camera.position.z = 350;
+        camera.position.z = 150;
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0xffffff );
-        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
+        scene.background = new THREE.Color( 0x228811 );
+        //scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
 
         renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio( window.devicePixelRatio );
@@ -77,6 +80,12 @@ Birds.App = function() {
 
         var birdMesh = initBirds();
         scene.add( birdMesh );
+
+        var geo = new THREE.BoxGeometry( 100, 100, 100 );
+        var mat = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+        var cube = new THREE.Mesh( geo, mat );
+        scene.add( cube );
+        Birds.cube = cube;
 
         window.addEventListener( 'resize', onWindowResize, false );
     }
@@ -166,6 +175,8 @@ Birds.App = function() {
         birdUniforms[ "texturePosition" ].value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
         birdUniforms[ "textureVelocity" ].value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
 
+        Birds.cube.rotation.x += 0.001;
+
         renderer.render( scene, camera );
     }
 
@@ -205,7 +216,7 @@ Birds.App = function() {
             vertexShader: Birds.shaders.birdVS,
             fragmentShader: Birds.shaders.birdFS,
             side: THREE.DoubleSide,
-            transparent: true
+            //transparent: true
         });
 
         var birdMesh = new THREE.Mesh( geometry, material );
@@ -232,7 +243,16 @@ Birds.App = function() {
             theArray[ k + 1 ] = y;
             theArray[ k + 2 ] = z;
             theArray[ k + 3 ] = 1;
+
         }
+        theArray[ 0 ] = 0;
+        theArray[ 1 ] = 20;
+        theArray[ 2 ] = 0;
+
+        theArray[ 3 ] = 10;
+        theArray[ 4 ] = 20;
+        theArray[ 5 ] = 0;
+
     }
 
     function initVelocityTexture( texture ) {
