@@ -52,6 +52,16 @@ Birds.BirdGeometry = function (width) {
             0, 0, - 15
         );
 
+        var geom = [
+            -50.0,  0.0,  0.0,
+             50.0,  0.0,  0.0,
+             0.0,  100.0, 0.0
+        ];
+
+        for ( var i = 0; i < geom.length; i ++) {
+            vertices.array[ i ] = geom[ i ];
+        }
+
     }
 
     for ( var v = 0; v < triangles * 3; v ++ ) {
@@ -94,6 +104,17 @@ Birds.BirdGeometry = function (width) {
         birdVertex.array[ v ] = v % 9;
 
     }
+
+    var cols = [
+        100, 20, 20,
+        20, 100, 20,
+        20, 20, 100
+    ];
+
+    for ( var i = 0; i < geom.length; i ++) {
+        birdColors.array[ i ] = cols[ i ] / 256;
+    }
+
 
     this.scale( 0.2, 0.2, 0.2 );
 

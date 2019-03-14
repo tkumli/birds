@@ -10,10 +10,12 @@ Birds.App = function() {
 
     var gpuCompute;
     var last;
+
     var velocityVariable;
     var positionVariable;
-    var positionUniforms;
+
     var velocityUniforms;
+    var positionUniforms;
     var birdUniforms;
 
     function init(cb) {
@@ -40,7 +42,7 @@ Birds.App = function() {
         scene.background = new THREE.Color( 0xffffff );
         scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
 
-        renderer = new THREE.WebGLRenderer();
+        renderer = new THREE.WebGLRenderer({antialias: true});
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
@@ -209,7 +211,7 @@ Birds.App = function() {
         });
 
         var birdMesh = new THREE.Mesh( geometry, material );
-        birdMesh.rotation.y = Math.PI / 2;
+        //birdMesh.rotation.y = Math.PI / 2;
         birdMesh.matrixAutoUpdate = false;
         birdMesh.updateMatrix();
 
