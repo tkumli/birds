@@ -8,19 +8,24 @@ Birds.App = function() {
     var container, stats;
     var camera, scene, renderer;
 
-    var gpuCompute;
     var last;
 
+    var gpuCompute;
     var velocityVariable;
     var positionVariable;
-
     var velocityUniforms;
     var positionUniforms;
     var birdUniforms;
 
+    var flintGpuCompute;
+    var flintPositionVariable;
+    var flintPositionUniforms;
+    var flintUniforms;
+
+
     function init(cb) {
         load_shaders({
-            names: ["frshPosition", "frshVelocity", "birdFS", "birdVS"],
+            names: ["frshPosition", "frshVelocity", "birdFS", "birdVS", "flintPosFS", "flintFS", "flintVS"],
             loaded: function() {
                 Birds.Page.init();
                 renderInit();
@@ -48,6 +53,7 @@ Birds.App = function() {
         container.appendChild( renderer.domElement );
 
         initComputeRenderer();
+        initFlintComputeRenderer();
 
         // add stats
         stats = new Stats();
@@ -80,6 +86,9 @@ Birds.App = function() {
         var birdMesh = initBirds();
         scene.add( birdMesh );
 
+        var flintMesh = initFlints();
+        scene.add( flintMesh );
+
         window.addEventListener( 'resize', onWindowResize, false );
     }
 
@@ -87,6 +96,38 @@ Birds.App = function() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function initFlintComputeRenderer() {
+        flintGpuCompute = new GPUComputationRenderer( 2, 2, renderer );
+        var dtPos = flintGpuCompute.createTexture();
+        
+        function push(arr, vals) {
+            for ( var i = 0; i < vals.length; i ++ ) {
+                arr[ i ] = vals[ i ];
+            }
+        }
+        push( dtPos.image.data, [
+            -10, -10, 300, 0,
+            10, -10, 300, 0,
+            -10, 10, 300, 0,
+            10, 10, 300, 0
+        ]);
+
+        flintPositionVariable = flintGpuCompute.addVariable( "texturePosition", Birds.shaders.flintPosFS, dtPos );
+        flintGpuCompute.setVariableDependencies( flintPositionVariable, [ flintPositionVariable ] );
+
+        flintPositionUniforms = flintPositionVariable.material.uniforms;
+        flintPositionUniforms[ "time" ] = { value: 0.0 };
+
+        flintPositionVariable.wrapS = THREE.RepeatWrapping;
+        flintPositionVariable.wrapT = THREE.RepeatWrapping;
+
+        var error = flintGpuCompute.init();
+        if ( error !== null ) {
+            console.error( error );
+        }
+
     }
 
 
@@ -168,6 +209,16 @@ Birds.App = function() {
         birdUniforms[ "texturePosition" ].value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
         birdUniforms[ "textureVelocity" ].value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
 
+        // flints
+        flintPositionUniforms[ "time" ].value = now;
+        flintUniforms[ "time" ].value = now;
+
+        flintGpuCompute.compute();
+
+        flintUniforms[ "texturePosition" ].value = flintGpuCompute.getCurrentRenderTarget( flintPositionVariable ).texture;
+
+
+
         renderer.render( scene, camera );
     }
 
@@ -216,6 +267,31 @@ Birds.App = function() {
         birdMesh.updateMatrix();
 
         return birdMesh;
+
+    }
+    
+    function initFlints() {
+        var geometry = new Birds.FlintGeometry(2);
+
+        flintUniforms = {
+            "texturePosition" : { value: null },
+            "time" : { value: 0.0 },
+            "delta" : { value: 0.0 }
+        }
+
+        var material = new THREE.ShaderMaterial({
+            uniforms: flintUniforms,
+            vertexShader: Birds.shaders.flintVS,
+            fragmentShader: Birds.shaders.flintFS,
+            side: THREE.DoubleSide,
+            //transparent: true
+        });
+
+        var mesh = new THREE.Mesh( geometry, material );
+
+        mesh.matrixAutoUpdate = false;
+        mesh.updateMatrix();
+        return mesh;
 
     }
 
