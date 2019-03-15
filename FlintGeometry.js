@@ -9,10 +9,12 @@ Birds.FlintGeometry = function (width) {
     var verts = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
     var cols =  new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
     var refs =  new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
+    var cubePositions = { array: [] };
 
     this.addAttribute( 'position', verts );
     this.addAttribute( 'color', cols );
     this.addAttribute( 'reference', refs );
+    this.initTextures = { "cubePositions" : cubePositions };
 
     // first, let's have one or two flints
     function push(attr, vals) {
@@ -46,6 +48,13 @@ Birds.FlintGeometry = function (width) {
         0.75, 0.25,
         0.75, 0.25,
         0.75, 0.25
+    ]);
+
+    push(cubePositions, [  // four flint, four positions
+        -10,  0, 0, 0,
+         10,  0, 0, 0,
+        -10, 10, 0, 0,
+         10, 10, 0, 0
     ]);
     
     //this.scale( 0.2, 0.2, 0.2 );
