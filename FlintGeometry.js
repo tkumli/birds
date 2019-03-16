@@ -97,43 +97,6 @@ Birds.FlintGeometry = function (n,m) {
         return rasterMx;
     }
 
-/*
-    // starting with a single face
-    var corns = [];
-    for (var i = 0; i <= n; i++) { corns[i] = []; }
-    corns[0][0] = new THREE.Vector3(-20, -20, -10);  // face... , whoops it could have been Vector3
-    corns[1][0] = new THREE.Vector3( 10, -10, -10);  //      at the first place
-    corns[0][1] = new THREE.Vector3(-10,  10, -10);
-    corns[1][1] = new THREE.Vector3( 10,  10, -10);
-    var rasterMx = [];
-    for (var x = 0; x <= n; x++) {
-        var colVector = [];
-        for (var y = 0; y <= m; y++) {
-            var point = new THREE.Vector3();
-            point.add( corns[0][0].clone().multiplyScalar( (n-x) * (m-y) ) );
-            point.add( corns[1][0].clone().multiplyScalar( x * (m-y) ) );
-            point.add( corns[0][1].clone().multiplyScalar( (n-x) * y ) );
-            point.add( corns[1][1].clone().multiplyScalar( x * y ) );
-            point.multiplyScalar(1/n/m);                
-            colVector.push(point);
-        }
-        rasterMx.push(colVector);
-    }
-    
-    var color1 = new THREE.Vector3(0.5, 0.5, 0.25);
-    var color2 = new THREE.Vector3(0.5, 0.5, 0.75);
-    for (var x = 0; x < n; x++) {
-        for (var y = 0; y < m; y++) {
-            color1.x = x / n;
-            color1.y = y / m;
-            color2.x = x / n;
-            color2.y = y / m;
-            pushTriangle(rasterMx[x][y], rasterMx[x+1][y], rasterMx[x][y+1], color1);
-            pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], color2);
-        }
-    }
-*/
-
     function pushVert(v, o, c, r) {
 
         // vertex (x,y,z)
@@ -178,51 +141,6 @@ Birds.FlintGeometry = function (n,m) {
         cubePositions.array[ icp++ ] = o.z;
         cubePositions.array[ icp++ ] = 0;   // texel is vec4...
     }
-
-
-    /*
-    // first, let's have one or two flints
-    function push(attr, vals) {
-        for ( var i = 0; i < vals.length; i ++) {
-            attr.array[ i ] = vals[ i ];
-        }
-    }
-
-    push(verts, [
-        0, 0, 0,
-        10, 0, 0,
-        0, 10, 0,
-        10, 0, 0,
-        10, 10, 0,
-        0, 10, 0
-    ]);
-
-    push(cols, [
-        1, 0, 0, 
-        1, 0, 0, 
-        1, 0, 0, 
-        0, 1, 0,
-        0, 1, 0,
-        0, 1, 0
-    ]);
-
-    push(refs, [
-        0.25, 0.25,
-        0.25, 0.25,
-        0.25, 0.25,
-        0.75, 0.25,
-        0.75, 0.25,
-        0.75, 0.25
-    ]);
-
-    push(cubePositions, [  // four flint, four positions
-        -10,  0, 0, 0,
-         10,  0, 0, 0,
-        -10, 10, 0, 0,
-         10, 10, 0, 0
-    ]);
-    */
-    //this.scale( 0.2, 0.2, 0.2 );
-
 };
+
 Birds.FlintGeometry.prototype = Object.create( THREE.BufferGeometry.prototype );

@@ -6,7 +6,8 @@ Birds.FlintMesh = function (renderer) {
     var flintUniforms = {
         "texturePosition" : { value: null },
         "time" : { value: 0.0 },
-        "delta" : { value: 0.0 }
+        "delta" : { value: 0.0 },
+        "flintRotation" : new THREE.Uniform( new THREE.Matrix4() )
     }
 
     var material = new THREE.ShaderMaterial({
@@ -14,7 +15,7 @@ Birds.FlintMesh = function (renderer) {
         vertexShader: Birds.shaders.flintVS,
         fragmentShader: Birds.shaders.flintFS,
         side: THREE.DoubleSide,
-        //transparent: true
+        transparent: true
     });
 
     THREE.Mesh.call( this, geometry, material );

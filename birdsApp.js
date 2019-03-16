@@ -7,6 +7,7 @@ Birds.App = function() {
     var last;
 
     var flintMesh;
+    var flintObj;
 
     function init(cb) {
         load_shaders({
@@ -32,13 +33,17 @@ Birds.App = function() {
         scene.background = new THREE.Color( 0xffffff );
         scene.fog = new THREE.Fog( 0xffffff, 100, 1000 ); // todo: ez mi?
 
-        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
 
         flintMesh =new Birds.FlintMesh( renderer );
         scene.add( flintMesh );
+
+        flintObj = new THREE.Object3D();
+        flintObj.scale.set(0.9, 0.9, 0.9);
+        flintObj.updateMatrix();
 
         // add stats
         stats = new Stats();
@@ -81,6 +86,12 @@ Birds.App = function() {
 
     function animate() {
         requestAnimationFrame( animate );
+
+        // flints
+        flintMesh.rotation.y += .001;
+        flintMesh.position.z = 320;
+        flintMesh.updateMatrix();
+
         render();
         stats.update();
     }
@@ -95,14 +106,13 @@ Birds.App = function() {
         Birds.mouseX = 10000;
         Birds.mouseY = 10000;
 
-        // flints
-        flintMesh.rotation.y += .01;
-        flintMesh.position.z = 300;
-        flintMesh.updateMatrix();
+        flintObj.rotation.y -= 0.01;
+        flintObj.updateMatrix();
+        flintMesh.material.uniforms["flintRotation"].value = flintObj.matrix;
 
         flintMesh.setTime(now);
         flintMesh.compute();
-        
+
         renderer.render( scene, camera );
     }
 

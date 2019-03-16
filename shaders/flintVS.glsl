@@ -5,19 +5,21 @@ attribute vec2 reference;
 uniform sampler2D texturePosition;
 uniform float time;
 
+uniform mat4 flintRotation;
+
 varying vec4 vColor;
 
 void main() {
 
-    vec4 newPosition = vec4(position, 1.0);
+    // testing uniform flintRotation
+    vec4 newPosition = flintRotation * vec4(position, 1.0);
 
+    // local disposition 
     vec4 texel = texture2D( texturePosition, reference );
-    vec3 pos = texel.xyz;
-    newPosition += vec4(pos, 0.0);
+    vec4 pos = vec4(texel.xyz, 0);
+    newPosition += pos;
 
-    newPosition = modelMatrix * newPosition;
-
-    gl_Position = projectionMatrix *  viewMatrix  * newPosition;
-    vColor = vec4( color, 1.0 );
+    gl_Position = projectionMatrix *  viewMatrix  * modelMatrix * newPosition;
+    vColor = vec4( color, 0.5 );
 
 }
