@@ -1,19 +1,12 @@
 // App
 Birds.App = function() {
 
-
     var container, stats;
     var camera, scene, renderer;
 
     var last;
 
-    var flintGpuCompute;
-
-    var flintPositionVariable;
-    var flintPositionUniforms;
-
     var flintMesh;
-    var flintUniforms;
 
     function init(cb) {
         load_shaders({
@@ -37,17 +30,15 @@ Birds.App = function() {
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xffffff );
-        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 ); // ez mi?
+        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 ); // todo: ez mi?
 
         renderer = new THREE.WebGLRenderer({antialias: true});
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
 
-        flintMesh = initFlints();
+        flintMesh =new Birds.FlintMesh( renderer );
         scene.add( flintMesh );
-
-        initFlintComputeRenderer( flintMesh );
 
         // add stats
         stats = new Stats();
@@ -88,35 +79,6 @@ Birds.App = function() {
         renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
-    function initFlintComputeRenderer( mesh ) {
-        flintGpuCompute = new GPUComputationRenderer( 2, 2, renderer );
-        var dtPos = flintGpuCompute.createTexture();
-        
-        function push(arr, vals) {
-            for ( var i = 0; i < vals.length; i ++ ) {
-                arr[ i ] = vals[ i ];
-            }
-        }
-        push( dtPos.image.data, mesh.geometry.initTextures["cubePositions"].array);
-
-        flintPositionVariable = flintGpuCompute.addVariable( "texturePosition", Birds.shaders.flintPosFS, dtPos );
-        flintGpuCompute.setVariableDependencies( flintPositionVariable, [ flintPositionVariable ] );
-
-        flintPositionUniforms = flintPositionVariable.material.uniforms;
-        flintPositionUniforms[ "time" ] = { value: 0.0 };
-
-        flintPositionVariable.wrapS = THREE.RepeatWrapping;
-        flintPositionVariable.wrapT = THREE.RepeatWrapping;
-
-        var error = flintGpuCompute.init();
-        if ( error !== null ) {
-            console.error( error );
-        }
-
-    }
-
-
-
     function animate() {
         requestAnimationFrame( animate );
         render();
@@ -133,18 +95,14 @@ Birds.App = function() {
         Birds.mouseX = 10000;
         Birds.mouseY = 10000;
 
-        flintMesh.rotation.y += .01;
+        // flints
+        //flintMesh.rotation.y += .01;
         flintMesh.position.z = 300;
         flintMesh.updateMatrix();
 
-        // flints
-        flintPositionUniforms[ "time" ].value = now;
-        flintUniforms[ "time" ].value = now;
-
-        flintGpuCompute.compute();
-
-        flintUniforms[ "texturePosition" ].value = flintGpuCompute.getCurrentRenderTarget( flintPositionVariable ).texture;
-
+        flintMesh.setTime(now);
+        flintMesh.compute();
+        
         renderer.render( scene, camera );
     }
 
@@ -165,36 +123,6 @@ Birds.App = function() {
         names.forEach(name => load(name));
     }
     
-    function initFlints() {
-        var geometry = new Birds.FlintGeometry(2);
-
-        flintUniforms = {
-            "texturePosition" : { value: null },
-            "time" : { value: 0.0 },
-            "delta" : { value: 0.0 }
-        }
-
-        var material = new THREE.ShaderMaterial({
-            uniforms: flintUniforms,
-            vertexShader: Birds.shaders.flintVS,
-            fragmentShader: Birds.shaders.flintFS,
-            side: THREE.DoubleSide,
-            //transparent: true
-        });
-
-        var mesh2 = new Birds.FlintMesh(renderer);
-        console.log(mesh2);
-
-        var mesh = new THREE.Mesh( geometry, material );
-        //console.log(mesh);
-        mesh.matrixAutoUpdate = false;
-        mesh.updateMatrix();
-
-        flintMesh = mesh;
-        return mesh;
-
-    }
-
     // API
     // ... a single init() method exposed:
     return {

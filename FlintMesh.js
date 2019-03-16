@@ -1,6 +1,6 @@
 Birds.FlintMesh = function (renderer) {
     
-    var geometry = new Birds.FlintGeometry(2);
+    var geometry = new Birds.FlintGeometry(8,8);
     
     // normal mesh 
     var flintUniforms = {
@@ -20,7 +20,7 @@ Birds.FlintMesh = function (renderer) {
     THREE.Mesh.call( this, geometry, material );
 
     // gpuCompute to compute positions
-    var gpuCompute = new GPUComputationRenderer( 2, 2, renderer );
+    var gpuCompute = new GPUComputationRenderer( 8, 8, renderer );
     var dtPos = gpuCompute.createTexture();
     
     function push(arr, vals) {
@@ -56,16 +56,18 @@ Birds.FlintMesh = function (renderer) {
 Birds.FlintMesh.prototype = Object.create( THREE.Mesh.prototype );
 
 Object.assign(Birds.FlintMesh.prototype, {
+
     setTime : function( time ) {
         var self = this._flint_;
-        self.flintUniforms[ "time" ] = time;
-        self.posVarUniforms[ "time" ] = time;
+        self.flintUniforms[ "time" ].value = time;
+        self.posVarUniforms[ "time" ].value = time;
     },
 
     compute : function() {
         var self = this._flint_;
         self.gpuCompute.compute();
-        self.flintUniforms[ "texturePosition" ].value = gpuCompute.getCurrentRenderTarget( this.posvar ).texture;
+        self.flintUniforms[ "texturePosition" ].value =
+            self.gpuCompute.getCurrentRenderTarget( self.posVar ).texture;
     }
 
 });
