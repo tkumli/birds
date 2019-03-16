@@ -13,6 +13,9 @@ void main() {
 
     // testing uniform flintRotation
     vec4 newPosition = flintRotation * vec4(position, 1.0);
+    if (reference.x < 0.3) {
+        newPosition = flintRotation * newPosition;
+    }
 
     // local disposition 
     vec4 texel = texture2D( texturePosition, reference );

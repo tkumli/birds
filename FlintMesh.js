@@ -15,7 +15,8 @@ Birds.FlintMesh = function (renderer) {
         vertexShader: Birds.shaders.flintVS,
         fragmentShader: Birds.shaders.flintFS,
         side: THREE.DoubleSide,
-        transparent: true
+        transparent: true,
+        depthWrite: false
     });
 
     THREE.Mesh.call( this, geometry, material );
