@@ -1,6 +1,6 @@
 Birds.FlintMesh = function (renderer) {
     
-    var geometry = new Birds.FlintGeometry(8,8);
+    var geometry = new Birds.FlintGeometry(4, 4);
     
     // normal mesh 
     var flintUniforms = {
@@ -20,7 +20,8 @@ Birds.FlintMesh = function (renderer) {
     THREE.Mesh.call( this, geometry, material );
 
     // gpuCompute to compute positions
-    var gpuCompute = new GPUComputationRenderer( 8, 8, renderer );
+    var txtrSize = geometry.initTextures.size;
+    var gpuCompute = new GPUComputationRenderer( txtrSize, txtrSize, renderer );
     var dtPos = gpuCompute.createTexture();
     
     function push(arr, vals) {
@@ -28,7 +29,7 @@ Birds.FlintMesh = function (renderer) {
             arr[ i ] = vals[ i ];
         }
     }
-    push( dtPos.image.data, geometry.initTextures["cubePositions"].array);
+    push( dtPos.image.data, geometry.initTextures.cubePositions.array );
 
     var posVar = gpuCompute.addVariable( "texturePosition", Birds.shaders.flintPosFS, dtPos );
     gpuCompute.setVariableDependencies( posVar, [ posVar ] );

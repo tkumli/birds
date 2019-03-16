@@ -96,7 +96,7 @@ Birds.App = function() {
         Birds.mouseY = 10000;
 
         // flints
-        //flintMesh.rotation.y += .01;
+        flintMesh.rotation.y += .01;
         flintMesh.position.z = 300;
         flintMesh.updateMatrix();
 
