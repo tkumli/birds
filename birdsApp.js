@@ -42,7 +42,7 @@ Birds.App = function() {
         scene.add( flintMesh );
 
         flintObj = new THREE.Object3D();
-        flintObj.scale.set(1.9, 1.9, 1.9);
+        flintObj.scale.set(0.9, 0.9, 0.9);
         flintObj.updateMatrix();
 
         // add stats
@@ -88,7 +88,7 @@ Birds.App = function() {
         requestAnimationFrame( animate );
 
         // flints
-        flintMesh.rotation.y += .0001;
+        flintMesh.rotation.y += .001;
         flintMesh.position.z = 320;
         flintMesh.updateMatrix();
 
@@ -106,8 +106,8 @@ Birds.App = function() {
         Birds.mouseX = 10000;
         Birds.mouseY = 10000;
 
-        flintObj.rotation.y -= 0.001;
-        flintObj.rotation.x += 0.0008;
+        flintObj.rotation.y -= 0.01;
+        flintObj.rotation.x += 0.008;
         flintObj.updateMatrix();
         flintMesh.material.uniforms["flintRotation"].value = flintObj.matrix;
 
