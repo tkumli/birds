@@ -1,6 +1,6 @@
 Birds.FlintMesh = function (renderer) {
     
-    var geometry = new Birds.FlintGeometry(4, 4);
+    var geometry = new Birds.FlintGeometry(8, 8);
     
     // normal mesh 
     var flintUniforms = {
@@ -15,8 +15,8 @@ Birds.FlintMesh = function (renderer) {
         vertexShader: Birds.shaders.flintVS,
         fragmentShader: Birds.shaders.flintFS,
         side: THREE.DoubleSide,
-        transparent: true,
-        depthWrite: false
+        transparent: false,
+        depthWrite: true
     });
 
     THREE.Mesh.call( this, geometry, material );
@@ -25,6 +25,7 @@ Birds.FlintMesh = function (renderer) {
     var txtrSize = geometry.initTextures.size;
     var gpuCompute = new GPUComputationRenderer( txtrSize, txtrSize, renderer );
     var dtPos = gpuCompute.createTexture();
+    var dtCubePos = gpuCompute.createTexture();
     
     function push(arr, vals) {
         for ( var i = 0; i < vals.length; i ++ ) {
@@ -32,12 +33,14 @@ Birds.FlintMesh = function (renderer) {
         }
     }
     push( dtPos.image.data, geometry.initTextures.cubePositions.array );
+    push( dtCubePos.image.data, geometry.initTextures.cubePositions.array );
 
     var posVar = gpuCompute.addVariable( "texturePosition", Birds.shaders.flintPosFS, dtPos );
     gpuCompute.setVariableDependencies( posVar, [ posVar ] );
 
     var posVarUniforms = posVar.material.uniforms;
     posVarUniforms[ "time" ] = { value: 0.0 };
+    posVarUniforms[ "cubePos" ] = { value: dtCubePos };
 
     posVar.wrapS = THREE.RepeatWrapping;
     posVar.wrapT = THREE.RepeatWrapping;

@@ -88,7 +88,11 @@ Birds.App = function() {
         requestAnimationFrame( animate );
 
         // flints
-        flintMesh.rotation.y += .001;
+        flintMesh.rotation.y += .01;
+        //flintMesh.rotation.x += .005;
+        //flintMesh.rotation.y = 3.2;
+        //flintMesh.rotation.x = .005;
+        
         flintMesh.position.z = 320;
         flintMesh.updateMatrix();
 
@@ -106,10 +110,10 @@ Birds.App = function() {
         Birds.mouseX = 10000;
         Birds.mouseY = 10000;
 
-        flintObj.rotation.y -= 0.01;
-        flintObj.rotation.x += 0.008;
-        flintObj.updateMatrix();
-        flintMesh.material.uniforms["flintRotation"].value = flintObj.matrix;
+        //flintObj.rotation.y -= 0.01;
+        //flintObj.rotation.x += 0.008;
+        //flintObj.updateMatrix();
+        //flintMesh.material.uniforms["flintRotation"].value = flintObj.matrix;
 
         flintMesh.setTime(now);
         flintMesh.compute();

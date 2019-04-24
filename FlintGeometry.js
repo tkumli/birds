@@ -12,11 +12,13 @@ Birds.FlintGeometry = function (n,m) {
 
     // per vertex buffers
     var verts = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
-    var cols =  new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
-    var refs =  new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
+    var cols  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
+    var uvs   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
+    var refs  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
     var iv = 0;  // i vertex buffer index
     var ic = 0;  // i color buffer index
     var ir = 0;  // i reference buffer index
+    var iuv = 0; // i uv buffer
 
     // per flint buffer
     var cubePositions = { array: [] };
@@ -28,6 +30,7 @@ Birds.FlintGeometry = function (n,m) {
     // adding per vertex attributes : will read by shader
     this.addAttribute( 'position', verts );
     this.addAttribute( 'color', cols );
+    this.addAttribute( 'uv', uvs );
     this.addAttribute( 'reference', refs );
     // adding extra per flint attributes : will read by FlintMesh
     this.initTextures = {
@@ -38,18 +41,20 @@ Birds.FlintGeometry = function (n,m) {
     // let's construct a flint cube
     var cube = {
         verts: [
-            new Vec3(-15, -15, -10),
+            new Vec3(-10, -10, -10),
             new Vec3( 10, -10, -10),
             new Vec3( 10,  10, -10),
             new Vec3(-10,  10, -10),
-            new Vec3( -5,  -5,  10),
+            new Vec3(-10, -10,  10),
             new Vec3( 10, -10,  10),
             new Vec3( 10,  10,  10),
             new Vec3(-10,  10,  10),
         ],
         faces: [
             [0, 1, 2, 3],
-            [7, 6, 5, 4]
+            [7, 6, 5, 4],
+            [0, 1, 5, 4],
+            [2, 3, 7, 6]
         ]
     };
     
@@ -67,14 +72,19 @@ Birds.FlintGeometry = function (n,m) {
     function addFaceByRaster(rasterMx) {
         var color1 = new THREE.Vector3(0.5, 0.5, 0.25);
         var color2 = new THREE.Vector3(0.5, 0.5, 0.75);
+        var uv00 = new THREE.Vector2(0.0, 0.0);
+        var uv01 = new THREE.Vector2(0.0, 1.0);
+        var uv10 = new THREE.Vector2(1.0, 0.0);
+        var uv11 = new THREE.Vector2(1.0, 1.0);
         for (var x = 0; x < n; x++) {
             for (var y = 0; y < m; y++) {
                 color1.x = x / n;
                 color1.y = y / m;
                 color2.x = x / n;
                 color2.y = y / m;
-                pushTriangle(rasterMx[x][y], rasterMx[x+1][y], rasterMx[x][y+1], color1);
-                pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], color2);
+                pushTriangle(rasterMx[x][y], rasterMx[x+1][y], rasterMx[x][y+1], uv00, uv10, uv01, color1);
+                pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv11, uv01, uv10, color2);
+                //pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv00, uv10, uv01, color2);
             }
         }
     }
@@ -84,26 +94,32 @@ Birds.FlintGeometry = function (n,m) {
         for (var x = 0; x <= n; x++) {
             var colVector = [];
             for (var y = 0; y <= m; y++) {
-                var point = new THREE.Vector3();
-                point.add( corner00.clone().multiplyScalar( (n-x) * (m-y) ) );
-                point.add( corner10.clone().multiplyScalar( x * (m-y) ) );
-                point.add( corner01.clone().multiplyScalar( (n-x) * y ) );
-                point.add( corner11.clone().multiplyScalar( x * y ) );
-                point.multiplyScalar(1/n/m);                
-                colVector.push(point);
+                var pos = new THREE.Vector3();
+                pos.add( corner00.clone().multiplyScalar( (n-x) * (m-y) ) );
+                pos.add( corner10.clone().multiplyScalar(   x   * (m-y) ) );
+                pos.add( corner01.clone().multiplyScalar( (n-x) *   y   ) );
+                pos.add( corner11.clone().multiplyScalar(   x   *   y   ) );
+                pos.multiplyScalar(1/n/m);
+
+                var uv = new THREE.Vector2(x/n, y/m);
+                colVector.push({pos: pos, uv: uv});
             }
             rasterMx.push(colVector);
         }
         return rasterMx;
     }
 
-    function pushVert(v, o, c, r) {
+    function pushVert(pos, o, c, r, uv) {
 
         // vertex (x,y,z)
-        verts.array[ iv++ ] = v.x - o.x;
-        verts.array[ iv++ ] = v.y - o.y;
-        verts.array[ iv++ ] = v.z - o.z;
+        verts.array[ iv++ ] = pos.x - o.x;
+        verts.array[ iv++ ] = pos.y - o.y;
+        verts.array[ iv++ ] = pos.z - o.z;
 
+        // uv
+        uvs.array[ iuv++ ] = uv.x;
+        uvs.array[ iuv++ ] = uv.y;
+        
         // color (r,g,b)
         cols.array[ ic++ ] = c.x;
         cols.array[ ic++ ] = c.y;
@@ -115,13 +131,13 @@ Birds.FlintGeometry = function (n,m) {
     }
 
     // storing a flint (triangle here, whoops it is a flint)
-    function pushTriangle(v1, v2, v3, c) {
+    function pushTriangle(v1, v2, v3, uv1, uv2, uv3, c) {
         
         // center point
         var o = new THREE.Vector3();
-        o.add(v1);
-        o.add(v2);
-        o.add(v3);
+        o.add(v1.pos);
+        o.add(v2.pos);
+        o.add(v3.pos);
         o.multiplyScalar(1/3);
         
         // ref uv on texture
@@ -131,9 +147,14 @@ Birds.FlintGeometry = function (n,m) {
         );
         r.multiplyScalar(1/txtrSize);
         ifl ++;
-        pushVert(v1, o, c, r);
-        pushVert(v2, o, c, r);
-        pushVert(v3, o, c, r);
+
+        pushVert(v1.pos, o, c, r, v1.uv);
+        pushVert(v2.pos, o, c, r, v2.uv);
+        pushVert(v3.pos, o, c, r, v3.uv);
+
+        //pushVert(v1.pos, o, c, r, uv1);
+        //pushVert(v2.pos, o, c, r, uv2);
+        //pushVert(v3.pos, o, c, r, uv3);
         
         // flint position to form a cube
         cubePositions.array[ icp++ ] = o.x;

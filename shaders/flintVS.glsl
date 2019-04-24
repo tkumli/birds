@@ -1,6 +1,7 @@
 // attrs: position, color, reference
 attribute vec3 color;
 attribute vec2 reference;
+// attribute vec2 uv;
 
 uniform sampler2D texturePosition;
 uniform float time;
@@ -8,6 +9,8 @@ uniform float time;
 uniform mat4 flintRotation;
 
 varying vec4 vColor;
+varying vec2 vUv;
+varying float vTime;
 
 void main() {
 
@@ -24,5 +27,7 @@ void main() {
 
     gl_Position = projectionMatrix *  viewMatrix  * modelMatrix * newPosition;
     vColor = vec4( color, 0.5 );
+    vUv = uv;
+    vTime = time;
 
 }
