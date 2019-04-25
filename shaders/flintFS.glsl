@@ -19,6 +19,11 @@ float plot(in vec2 uv, in float y) {
 
 }
 
+float random (vec2 st) {
+    return fract(sin(dot(floor(10.0 * st.xy), vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+/*
 void main() {
     float t = vTime / 10000.0;
     float x = vUv.x;
@@ -40,4 +45,10 @@ void main() {
     //gl_FragColor = vec4(vColor.rgba);
     //gl_FragColor = vec4(vUv, 0.0, 1.0);
     gl_FragColor = vec4(color, 1.0);
+}
+*/
+
+void main() {
+    float rnd = random(vUv);
+    gl_FragColor = vec4(vec3(vUv.x, rnd, rnd), 1.0);
 }
