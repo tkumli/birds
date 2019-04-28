@@ -13,7 +13,7 @@ void main()	{
 
     //gl_FragColor = vec4( pos.x, pos.y + sin(time / 300.0 + uv.x), pos.z, 0.0 );
 
-    if ( n > 68.0 && n < 71.0 ) {
+    if ( n > 69.0 && n < 74.0 ) {
         float h = - 3.0 * abs(sin(t));
         //float h = 1.0 + gl_FragCoord.x / 10.0;
         pos = cubePos + vec3(0.0, 0.0, h);
