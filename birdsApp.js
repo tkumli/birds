@@ -56,7 +56,9 @@ Birds.App = function() {
             seperation: 20.0,
             alignment: 20.0,
             cohesion: 20.0,
-            freedom: 0.75
+            freedom: 0.75,
+            scale: 1.0,
+            morph: 0.0
         };
 
         var valuesChanger = function () {
@@ -66,6 +68,10 @@ Birds.App = function() {
             velocityUniforms[ "cohesionDistance" ].value = effectController.cohesion;
             velocityUniforms[ "freedomFactor" ].value = effectController.freedom;
             */
+           flintMesh._flint_.posVarUniforms.scale.value = effectController.scale;
+           flintMesh._flint_.posVarUniforms.morph.value = effectController.morph;
+           flintMesh._flint_.flintUniforms.scale.value = effectController.scale;
+           flintMesh._flint_.flintUniforms.morph.value = effectController.morph;
         };
         valuesChanger();
 
@@ -73,6 +79,8 @@ Birds.App = function() {
         gui.add( effectController, "alignment", 0.0, 100, 0.001 ).onChange( valuesChanger );
         gui.add( effectController, "cohesion", 0.0, 100, 0.025 ).onChange( valuesChanger );
         gui.add( effectController, "freedom", 0.0, 1.0, 0.025 ).onChange( valuesChanger );
+        gui.add( effectController, "scale", 1.0, 2.0, 0.001 ).onChange( valuesChanger );
+        gui.add( effectController, "morph", 0.0, 1.0, 0.001 ).onChange( valuesChanger );
         gui.close();
 
         window.addEventListener( 'resize', onWindowResize, false );
@@ -110,10 +118,10 @@ Birds.App = function() {
         Birds.mouseX = 10000;
         Birds.mouseY = 10000;
 
-        flintObj.rotation.y -= 0.01;
-        flintObj.rotation.x += 0.008;
-        flintObj.updateMatrix();
-        flintMesh.material.uniforms["flintRotation"].value = flintObj.matrix;
+        // flintObj.rotation.y -= 0.01;
+        // flintObj.rotation.x += 0.008;
+        // flintObj.updateMatrix();
+        // flintMesh.material.uniforms["flintRotation"].value = flintObj.matrix;
 
         flintMesh.setTime(now);
         flintMesh.compute();

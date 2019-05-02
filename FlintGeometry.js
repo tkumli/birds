@@ -1,6 +1,9 @@
 // Custom Geometry - using 3 triangles each. No UVs, no normals currently.
 Birds.FlintGeometry = function (n,m) {
 
+    var C = 10;
+    var S = 0.5 * ( 10 + Math.sqrt(10*10 + 10*10 + 10*10) );
+
     Vec3 = THREE.Vector3;
 
     THREE.BufferGeometry.call( this );
@@ -11,11 +14,13 @@ Birds.FlintGeometry = function (n,m) {
     var txtrSize = Math.pow(2, Math.ceil(Math.log2(Math.sqrt(num_of_flints))));
 
     // per vertex buffers
-    var verts = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
-    var cols  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
-    var uvs   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
-    var refs  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
+    var verts  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
+    var verts2 = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
+    var cols   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
+    var uvs    = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
+    var refs   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
     var iv = 0;  // i vertex buffer index
+    var iv2 = 0;  // i vertex buffer index
     var ic = 0;  // i color buffer index
     var ir = 0;  // i reference buffer index
     var iuv = 0; // i uv buffer
@@ -23,38 +28,44 @@ Birds.FlintGeometry = function (n,m) {
     // per flint buffer
     var cubePositions = { array: [] };
     var icp = 0; // i cube positions buffer index
+    var spherePositions = { array: [] };
+    var isp = 0; // i sphere positions buffer index
 
     // i flint index...
     var ifl = 0;
 
     // adding per vertex attributes : will read by shader
     this.addAttribute( 'position', verts );
+    this.addAttribute( 'pos2', verts2 );
     this.addAttribute( 'color', cols );
     this.addAttribute( 'uv', uvs );
     this.addAttribute( 'reference', refs );
     // adding extra per flint attributes : will read by FlintMesh
     this.initTextures = {
         size: txtrSize,
-        cubePositions: cubePositions
+        cubePositions: cubePositions,
+        spherePositions: spherePositions
     };
 
     // let's construct a flint cube
     var cube = {
         verts: [
-            new Vec3(-10, -10, -10),
-            new Vec3( 10, -10, -10),
-            new Vec3( 10,  10, -10),
-            new Vec3(-10,  10, -10),
-            new Vec3(-10, -10,  10),
-            new Vec3( 10, -10,  10),
-            new Vec3( 10,  10,  10),
-            new Vec3(-10,  10,  10),
+            new Vec3(-C, -C, -C),
+            new Vec3( C, -C, -C),
+            new Vec3( C,  C, -C),
+            new Vec3(-C,  C, -C),
+            new Vec3(-C, -C,  C),
+            new Vec3( C, -C,  C),
+            new Vec3( C,  C,  C),
+            new Vec3(-C,  C,  C),
         ],
         faces: [
             [0, 1, 2, 3],
-            [7, 6, 5, 4],
-            [0, 1, 5, 4],
-            [2, 3, 7, 6]
+            [6, 5, 4, 7],
+            [1, 5, 6, 2],
+            [7, 4, 0, 3],
+            [5, 1, 0, 4],
+            [3, 2, 6, 7]
         ]
     };
     
@@ -109,12 +120,17 @@ Birds.FlintGeometry = function (n,m) {
         return rasterMx;
     }
 
-    function pushVert(pos, o, c, r, uv) {
+    function pushVert(pos, o, pos2, o2, c, r, uv) {
 
         // vertex (x,y,z)
         verts.array[ iv++ ] = pos.x - o.x;
         verts.array[ iv++ ] = pos.y - o.y;
         verts.array[ iv++ ] = pos.z - o.z;
+
+        // vertex (x,y,z)
+        verts2.array[ iv2++ ] = pos2.x - o2.x;
+        verts2.array[ iv2++ ] = pos2.y - o2.y;
+        verts2.array[ iv2++ ] = pos2.z - o2.z;
 
         // uv
         uvs.array[ iuv++ ] = uv.x;
@@ -140,6 +156,16 @@ Birds.FlintGeometry = function (n,m) {
         o.add(v3.pos);
         o.multiplyScalar(1/3);
         
+        // vertex projected to sphere... and its center point
+        s1 = v1.pos.clone().normalize().multiplyScalar(S);
+        s2 = v2.pos.clone().normalize().multiplyScalar(S);
+        s3 = v3.pos.clone().normalize().multiplyScalar(S);
+        var o2 = new THREE.Vector3();
+        o2.add(s1);
+        o2.add(s2);
+        o2.add(s3);
+        o2.multiplyScalar(1/3);
+
         // ref uv on texture
         r = new THREE.Vector2(
             ifl % txtrSize + 0.5,
@@ -148,9 +174,9 @@ Birds.FlintGeometry = function (n,m) {
         r.multiplyScalar(1/txtrSize);
         ifl ++;
 
-        pushVert(v1.pos, o, c, r, v1.uv);
-        pushVert(v2.pos, o, c, r, v2.uv);
-        pushVert(v3.pos, o, c, r, v3.uv);
+        pushVert(v1.pos, o, s1, o2, c, r, v1.uv);
+        pushVert(v2.pos, o, s2, o2, c, r, v2.uv);
+        pushVert(v3.pos, o, s3, o2, c, r, v3.uv);
 
         //pushVert(v1.pos, o, c, r, uv1);
         //pushVert(v2.pos, o, c, r, uv2);
@@ -161,6 +187,12 @@ Birds.FlintGeometry = function (n,m) {
         cubePositions.array[ icp++ ] = o.y;
         cubePositions.array[ icp++ ] = o.z;
         cubePositions.array[ icp++ ] = 0;   // texel is vec4...
+
+        // flint position to form a sphere
+        spherePositions.array[ isp++ ] = o2.x;
+        spherePositions.array[ isp++ ] = o2.y;
+        spherePositions.array[ isp++ ] = o2.z;
+        spherePositions.array[ isp++ ] = 0;   // texel is vec4...
     }
 };
 

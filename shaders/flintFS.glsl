@@ -91,6 +91,11 @@ void main() {
               sin(4.1 * y + 1.1  + 1.2 * t);
     w = w / 8.0 + 0.5;
 
-    vec3 col = mix(col1, col2, smoothstep(0.35, 0.45, w));
-    gl_FragColor = vec4(col, 1.0);
+    vec3 color = mix(col1, col2, smoothstep(0.35, 0.45, w));
+
+    // grid
+    float pct = grid(vUv);
+    color = mix(color, vec3(0.7, 0.0, 0.5), pct);
+
+    gl_FragColor = vec4(color, 1.0);
 }
