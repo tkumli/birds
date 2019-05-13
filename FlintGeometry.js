@@ -17,11 +17,13 @@ Birds.FlintGeometry = function (n,m) {
     var verts  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
     var verts2 = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
     var cols   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
+    var hides  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 1 ), 1 );
     var uvs    = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
     var refs   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
     var iv = 0;  // i vertex buffer index
-    var iv2 = 0;  // i vertex buffer index
+    var iv2 = 0; // i vertex buffer 2 index
     var ic = 0;  // i color buffer index
+    var ih = 0;  // i hide buffer index
     var ir = 0;  // i reference buffer index
     var iuv = 0; // i uv buffer
 
@@ -37,7 +39,9 @@ Birds.FlintGeometry = function (n,m) {
     // adding per vertex attributes : will read by shader
     this.addAttribute( 'position', verts );
     this.addAttribute( 'pos2', verts2 );
+    this.addAttribute( 'hide', hides );
     this.addAttribute( 'color', cols );
+    this.addAttribute( 'hides', hides );
     this.addAttribute( 'uv', uvs );
     this.addAttribute( 'reference', refs );
     // adding extra per flint attributes : will read by FlintMesh
@@ -68,6 +72,8 @@ Birds.FlintGeometry = function (n,m) {
             [3, 2, 6, 7]
         ]
     };
+
+    var faceHides = [0, 0, 1, 1, 0, 0];
     
     for ( var i = 0; i < cube.faces.length; i++ ) {
         var raster = createRaster(
@@ -77,10 +83,10 @@ Birds.FlintGeometry = function (n,m) {
             cube.verts[ cube.faces[i][3] ]
         );
 
-        addFaceByRaster(raster);
+        addFaceByRaster(raster, faceHides[i]);
     }
 
-    function addFaceByRaster(rasterMx) {
+    function addFaceByRaster(rasterMx, hide) {
         var color1 = new THREE.Vector3(0.5, 0.5, 0.25);
         var color2 = new THREE.Vector3(0.5, 0.5, 0.75);
         var uv00 = new THREE.Vector2(0.0, 0.0);
@@ -93,9 +99,9 @@ Birds.FlintGeometry = function (n,m) {
                 color1.y = y / m;
                 color2.x = x / n;
                 color2.y = y / m;
-                pushTriangle(rasterMx[x][y], rasterMx[x+1][y], rasterMx[x][y+1], uv00, uv10, uv01, color1);
-                pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv11, uv01, uv10, color2);
-                //pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv00, uv10, uv01, color2);
+                pushTriangle(rasterMx[x][y], rasterMx[x+1][y], rasterMx[x][y+1], uv00, uv10, uv01, color1, hide);
+                pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv11, uv01, uv10, color2, hide);
+                //pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv00, uv10, uv01, color2, hide);
             }
         }
     }
@@ -120,7 +126,7 @@ Birds.FlintGeometry = function (n,m) {
         return rasterMx;
     }
 
-    function pushVert(pos, o, pos2, o2, c, r, uv) {
+    function pushVert(pos, o, pos2, o2, c, r, uv, hide) {
 
         // vertex (x,y,z)
         verts.array[ iv++ ] = pos.x - o.x;
@@ -141,13 +147,16 @@ Birds.FlintGeometry = function (n,m) {
         cols.array[ ic++ ] = c.y;
         cols.array[ ic++ ] = c.z;
 
+        // hide (h)
+        hides.array[ ih++ ] = hide; 
+
         // flint reference (u,v)
         refs.array[ ir++ ] = r.x;
         refs.array[ ir++ ] = r.y;
     }
 
     // storing a flint (triangle here, whoops it is a flint)
-    function pushTriangle(v1, v2, v3, uv1, uv2, uv3, c) {
+    function pushTriangle(v1, v2, v3, uv1, uv2, uv3, c, hide) {
         
         // center point
         var o = new THREE.Vector3();
@@ -174,9 +183,9 @@ Birds.FlintGeometry = function (n,m) {
         r.multiplyScalar(1/txtrSize);
         ifl ++;
 
-        pushVert(v1.pos, o, s1, o2, c, r, v1.uv);
-        pushVert(v2.pos, o, s2, o2, c, r, v2.uv);
-        pushVert(v3.pos, o, s3, o2, c, r, v3.uv);
+        pushVert(v1.pos, o, s1, o2, c, r, v1.uv, hide);
+        pushVert(v2.pos, o, s2, o2, c, r, v2.uv, hide);
+        pushVert(v3.pos, o, s3, o2, c, r, v3.uv, hide);
 
         //pushVert(v1.pos, o, c, r, uv1);
         //pushVert(v2.pos, o, c, r, uv2);

@@ -94,8 +94,8 @@ void main() {
     vec3 color = mix(col1, col2, smoothstep(0.35, 0.45, w));
 
     // grid
-    float pct = grid(vUv);
-    color = mix(color, vec3(0.7, 0.0, 0.5), pct);
+    //float pct = grid(vUv);
+    //color = mix(color, vec3(0.7, 0.0, 0.5), pct);
 
     gl_FragColor = vec4(color, 1.0);
 }

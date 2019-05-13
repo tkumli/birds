@@ -9,7 +9,8 @@ Birds.FlintMesh = function (renderer) {
         "delta" : { value: 0.0 },
         "flintRotation" : new THREE.Uniform( new THREE.Matrix4() ),
         "scale" : { value: 0.0 },
-        "morph" : { value: 0.0 }
+        "morph" : { value: 0.0 },
+        "hideSome" : { value: 1.0 }
     }
 
     var material = new THREE.ShaderMaterial({
@@ -48,6 +49,7 @@ Birds.FlintMesh = function (renderer) {
     posVarUniforms[ "spherePos" ] = { value: dtSpherePos };
     posVarUniforms[ "scale" ] = { value: 1.0 };
     posVarUniforms[ "morph" ] = { value: 0.0 };
+    posVarUniforms[ "hideSome" ] = { value: 1.0 };
 
     posVar.wrapS = THREE.RepeatWrapping;
     posVar.wrapT = THREE.RepeatWrapping;

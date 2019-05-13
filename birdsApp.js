@@ -58,7 +58,8 @@ Birds.App = function() {
             cohesion: 20.0,
             freedom: 0.75,
             scale: 1.0,
-            morph: 0.0
+            morph: 0.0,
+            show: false
         };
 
         var valuesChanger = function () {
@@ -72,6 +73,8 @@ Birds.App = function() {
            flintMesh._flint_.posVarUniforms.morph.value = effectController.morph;
            flintMesh._flint_.flintUniforms.scale.value = effectController.scale;
            flintMesh._flint_.flintUniforms.morph.value = effectController.morph;
+           flintMesh._flint_.flintUniforms.hideSome.value = 1.0;
+           if (effectController.show) { flintMesh._flint_.flintUniforms.hideSome.value = 0.0; } 
         };
         valuesChanger();
 
@@ -81,6 +84,7 @@ Birds.App = function() {
         gui.add( effectController, "freedom", 0.0, 1.0, 0.025 ).onChange( valuesChanger );
         gui.add( effectController, "scale", 1.0, 2.0, 0.001 ).onChange( valuesChanger );
         gui.add( effectController, "morph", 0.0, 1.0, 0.001 ).onChange( valuesChanger );
+        gui.add( effectController, "show").onChange( valuesChanger );
         gui.close();
 
         window.addEventListener( 'resize', onWindowResize, false );
