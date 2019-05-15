@@ -1,6 +1,6 @@
 Birds.FlintMesh = function (renderer) {
     
-    var geometry = new Birds.FlintGeometry(10, 10);
+    var geometry = new Birds.FlintGeometry(12, 12);
     
     // normal mesh 
     var flintUniforms = {

@@ -1,8 +1,10 @@
 // Custom Geometry - using 3 triangles each. No UVs, no normals currently.
-Birds.FlintGeometry = function (n,m) {
+Birds.FlintGeometry = function (n, m) {
 
     var C = 10;
     var S = 0.5 * ( 10 + Math.sqrt(10*10 + 10*10 + 10*10) );
+    var B = C / n;
+    var D = B / 2;
 
     Vec3 = THREE.Vector3;
 
@@ -10,18 +12,21 @@ Birds.FlintGeometry = function (n,m) {
 
     // dimensions
     var num_of_flints = n * m * 2 * 6;  // cube: 6 faces, m*n tiles, 2 flints per tile
-    var num_of_vertices = num_of_flints * 3; // flint: a simple triangle
+    var num_of_triangles = num_of_flints * 3;   // flint transforms to bird, a bird takes 3 triangles
+    var num_of_vertices = num_of_triangles * 3; // a triangle takes three vertices
     var txtrSize = Math.pow(2, Math.ceil(Math.log2(Math.sqrt(num_of_flints))));
 
     // per vertex buffers
     var verts  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
     var verts2 = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
+    var vertsB = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 4 ), 4 );
     var cols   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 3 ), 3 );
     var hides  = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 1 ), 1 );
     var uvs    = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
     var refs   = new THREE.BufferAttribute( new Float32Array( num_of_vertices * 2 ), 2 );
     var iv = 0;  // i vertex buffer index
     var iv2 = 0; // i vertex buffer 2 index
+    var ivb = 0; // i vertex buffer (bird) index
     var ic = 0;  // i color buffer index
     var ih = 0;  // i hide buffer index
     var ir = 0;  // i reference buffer index
@@ -39,6 +44,7 @@ Birds.FlintGeometry = function (n,m) {
     // adding per vertex attributes : will read by shader
     this.addAttribute( 'position', verts );
     this.addAttribute( 'pos2', verts2 );
+    this.addAttribute( 'pos_b', vertsB );
     this.addAttribute( 'hide', hides );
     this.addAttribute( 'color', cols );
     this.addAttribute( 'hides', hides );
@@ -99,8 +105,8 @@ Birds.FlintGeometry = function (n,m) {
                 color1.y = y / m;
                 color2.x = x / n;
                 color2.y = y / m;
-                pushTriangle(rasterMx[x][y], rasterMx[x+1][y], rasterMx[x][y+1], uv00, uv10, uv01, color1, hide);
-                pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv11, uv01, uv10, color2, hide);
+                pushFlint(rasterMx[x][y], rasterMx[x+1][y], rasterMx[x][y+1], uv00, uv10, uv01, color1, hide);
+                pushFlint(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv11, uv01, uv10, color2, hide);
                 //pushTriangle(rasterMx[x+1][y+1], rasterMx[x][y+1], rasterMx[x+1][y], uv00, uv10, uv01, color2, hide);
             }
         }
@@ -126,7 +132,7 @@ Birds.FlintGeometry = function (n,m) {
         return rasterMx;
     }
 
-    function pushVert(pos, o, pos2, o2, c, r, uv, hide) {
+    function pushVert(pos, o, pos2, o2, c, r, uv, hide, bv) {
 
         // vertex (x,y,z)
         verts.array[ iv++ ] = pos.x - o.x;
@@ -137,6 +143,12 @@ Birds.FlintGeometry = function (n,m) {
         verts2.array[ iv2++ ] = pos2.x - o2.x;
         verts2.array[ iv2++ ] = pos2.y - o2.y;
         verts2.array[ iv2++ ] = pos2.z - o2.z;
+
+        // vertex (x, y, z)
+        vertsB.array[ ivb ++ ] = bv.x;
+        vertsB.array[ ivb ++ ] = bv.y;
+        vertsB.array[ ivb ++ ] = bv.z;
+        vertsB.array[ ivb ++ ] = bv.w;
 
         // uv
         uvs.array[ iuv++ ] = uv.x;
@@ -155,8 +167,8 @@ Birds.FlintGeometry = function (n,m) {
         refs.array[ ir++ ] = r.y;
     }
 
-    // storing a flint (triangle here, whoops it is a flint)
-    function pushTriangle(v1, v2, v3, uv1, uv2, uv3, c, hide) {
+    // storing a flint: it takes 3 triangles - 3 almost identical
+    function pushFlint(v1, v2, v3, uv1, uv2, uv3, c, hide) {
         
         // center point
         var o = new THREE.Vector3();
@@ -183,14 +195,21 @@ Birds.FlintGeometry = function (n,m) {
         r.multiplyScalar(1/txtrSize);
         ifl ++;
 
-        pushVert(v1.pos, o, s1, o2, c, r, v1.uv, hide);
-        pushVert(v2.pos, o, s2, o2, c, r, v2.uv, hide);
-        pushVert(v3.pos, o, s3, o2, c, r, v3.uv, hide);
+        // bird vertex coords
+        var bv1 = new THREE.Vector4( 0,  0,  B,  0);
+        var bv2 = new THREE.Vector4( 0,  0, -B,  0);
+        var bv3 = new THREE.Vector4( D,  B,  0,  1);
+        var bv4 = new THREE.Vector4( 0,  0,  B,  0);
+        var bv5 = new THREE.Vector4( 0,  0, -B,  0);
+        var bv6 = new THREE.Vector4(-D,  B,  0,  1);
+        var bv7 = new THREE.Vector4( 0,  0,  B,  0);
+        var bv8 = new THREE.Vector4( 0,  0, -B,  0);
+        var bv9 = new THREE.Vector4( 0,  D,  D,  0);
 
-        //pushVert(v1.pos, o, c, r, uv1);
-        //pushVert(v2.pos, o, c, r, uv2);
-        //pushVert(v3.pos, o, c, r, uv3);
-        
+        pushTriangle(o, v1, v2, v3, o2, s1, s2, s3, r, uv1, uv2, uv3, c, hide, bv1, bv2, bv3);
+        pushTriangle(o, v1, v2, v3, o2, s1, s2, s3, r, uv1, uv2, uv3, c,    1, bv4, bv5, bv6);
+        pushTriangle(o, v1, v2, v3, o2, s1, s2, s3, r, uv1, uv2, uv3, c,    1, bv7, bv8, bv9);
+
         // flint position to form a cube
         cubePositions.array[ icp++ ] = o.x;
         cubePositions.array[ icp++ ] = o.y;
@@ -202,6 +221,18 @@ Birds.FlintGeometry = function (n,m) {
         spherePositions.array[ isp++ ] = o2.y;
         spherePositions.array[ isp++ ] = o2.z;
         spherePositions.array[ isp++ ] = 0;   // texel is vec4...
+    }
+    
+    // storing a flint (triangle here, whoops it is a flint)
+    function pushTriangle(o, v1, v2, v3, o2, s1, s2, s3, r, uv1, uv2, uv3, c, hide, bv1, bv2, bv3) {
+
+        pushVert(v1.pos, o, s1, o2, c, r, v1.uv, hide, bv1);
+        pushVert(v2.pos, o, s2, o2, c, r, v2.uv, hide, bv2);
+        pushVert(v3.pos, o, s3, o2, c, r, v3.uv, hide, bv3);
+
+        //pushVert(v1.pos, o, c, r, uv1);
+        //pushVert(v2.pos, o, c, r, uv2);
+        //pushVert(v3.pos, o, c, r, uv3);
     }
 };
 
